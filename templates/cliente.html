@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot InteLGnBOT - Cliente</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'burgundy': {
+                            50: '#fdf2f2',
+                            100: '#fce7e7',
+                            200: '#f9d5d5',
+                            300: '#f4b5b5',
+                            400: '#ec8888',
+                            500: '#e05d5d',
+                            600: '#cd3f3f',
+                            700: '#ab2f2f',
+                            800: '#8d2929',
+                            900: '#460000',
+                            950: '#2d0000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="gradient-bg min-h-screen text-gray-100">
+    <!-- Navigation Tabs -->
+    <div class="flex bg-gray-900 shadow-lg">
+        <a href="{{ url_for('chat') }}" class="tab-inactive px-6 py-4 font-semibold transition-all duration-300 flex-1 text-center no-underline">
+            <span class="flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M18 10c0 3.866-3.582 7-8 7a8.841 8.841 0 01-4.083-.98L2 17l1.338-3.123C2.493 12.767 2 11.434 2 10c0-3.866 3.582-7 8-7s8 3.134 8 7zM7 9H5v2h2V9zm8 0h-2v2h2V9zM9 9h2v2H9V9z" clip-rule="evenodd"></path>
+                </svg>
+                Chat
+            </span>
+        </a>
+        <a href="{{ url_for('cliente') }}" class="tab-active px-6 py-4 font-semibold transition-all duration-300 flex-1 text-center no-underline">
+            <span class="flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M11.49 3.17c-.38-1.56-2.6-1.56-2.98 0a1.532 1.532 0 01-2.286.948c-1.372-.836-2.942.734-2.106 2.106.54.886.061 2.042-.947 2.287-1.561.379-1.561 2.6 0 2.978a1.532 1.532 0 01.947 2.287c-.836 1.372.734 2.942 2.106 2.106a1.532 1.532 0 012.287.947c.379 1.561 2.6 1.561 2.978 0a1.533 1.533 0 012.287-.947c1.372.836 2.942-.734 2.106-2.106a1.533 1.533 0 01.947-2.287c1.561-.379 1.561-2.6 0-2.978a1.532 1.532 0 01-.947-2.287c.836-1.372-.734-2.942-2.106-2.106a1.532 1.532 0 01-2.287-.947zM10 13a3 3 0 100-6 3 3 0 000 6z" clip-rule="evenodd"></path>
+                </svg>
+                Cliente
+            </span>
+        </a>
+        <a href="{{ url_for('admin') }}" class="tab-inactive px-6 py-4 font-semibold transition-all duration-300 flex-1 text-center no-underline">
+            <span class="flex items-center justify-center gap-2">
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                </svg>
+                Admin
+            </span>
+        </a>
+    </div>
+
+    <!-- Cliente Configuration Content -->
+    <div class="p-6">
+        <div class="max-w-4xl mx-auto space-y-6">
+            <!-- Attitudes Section -->
+            <div class="bg-gray-800 rounded-lg p-6 card-shadow">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-white">Actitudes del Asistente</h3>
+                    <button onclick="openAddModal()"
+                            class="bg-gradient-to-r from-burgundy-600 to-burgundy-700 hover:from-burgundy-700 hover:to-burgundy-800 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Agregar Actitud
+                    </button>
+                </div>
+                <div id="attitudeList" class="grid gap-2"></div>
+            </div>
+
+            <!-- Business Prompt -->
+            <div class="bg-gray-800 rounded-lg p-6 card-shadow">
+                <h3 class="text-xl font-semibold text-white mb-4">Prompt de Negocio</h3>
+                <textarea id="negocioText"
+                          class="w-full h-32 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-burgundy-500 focus:border-transparent transition-all duration-200 resize-none"
+                          placeholder="Describe el contexto y propósito de tu negocio..."></textarea>
+            </div>
+
+            <!-- Rules Prompt -->
+            <div class="bg-gray-800 rounded-lg p-6 card-shadow">
+                <h3 class="text-xl font-semibold text-white mb-4">Prompt de Reglas</h3>
+                <textarea id="reglasText"
+                          class="w-full h-32 bg-gray-700 border border-gray-600 rounded-lg px-4 py-3 text-white placeholder-gray-400 focus:ring-2 focus:ring-burgundy-500 focus:border-transparent transition-all duration-200 resize-none"
+                          placeholder="Define las reglas y limitaciones del asistente..."></textarea>
+            </div>
+
+            <!-- Save Button -->
+            <div class="flex justify-end">
+                <button onclick="saveClienteConfig()"
+                        class="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white px-6 py-3 rounded-lg transition-all duration-200 flex items-center gap-2">
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+                    </svg>
+                    Guardar Cambios
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal fixed inset-0 bg-black bg-opacity-50 modal-backdrop hidden items-center justify-center z-50" id="modal">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4 card-shadow">
+            <h4 id="modalTitle" class="text-xl font-semibold text-white mb-4"></h4>
+
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Nombre de la actitud</label>
+                    <input type="text" id="modalName" placeholder="Ej: Amigable, Profesional, Casual..."
+                           class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-burgundy-500 focus:border-transparent transition-all duration-200">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-2">Descripción</label>
+                    <textarea id="modalDesc" placeholder="Describe cómo debe comportarse el asistente con esta actitud..."
+                              class="w-full h-24 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:ring-2 focus:ring-burgundy-500 focus:border-transparent transition-all duration-200 resize-none"></textarea>
+                </div>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button onclick="saveAttitude()"
+                        class="flex-1 bg-gradient-to-r from-burgundy-600 to-burgundy-700 hover:from-burgundy-700 hover:to-burgundy-800 text-white py-2 px-4 rounded-lg transition-all duration-200">
+                    Guardar
+                </button>
+                <button onclick="deleteAttitude()"
+                        class="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white py-2 px-4 rounded-lg transition-all duration-200">
+                    Eliminar
+                </button>
+                <button onclick="closeModal()"
+                        class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg transition-all duration-200">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let editingAttitude = '';
+
+        function openAddModal() {
+            editingAttitude = '';
+            document.getElementById('modalTitle').textContent = 'Agregar nueva actitud';
+            document.getElementById('modalName').value = '';
+            document.getElementById('modalDesc').value = '';
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+        }
+
+        function editAttitude(name, desc) {
+            editingAttitude = name;
+            document.getElementById('modalTitle').textContent = `Editar actitud: ${name}`;
+            document.getElementById('modalName').value = name;
+            document.getElementById('modalDesc').value = desc;
+            document.getElementById('modal').classList.remove('hidden');
+            document.getElementById('modal').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.add('hidden');
+            document.getElementById('modal').classList.remove('flex');
+        }
+
+        function loadAttitudes() {
+            fetch('/get_attitudes').then(res => res.json()).then(data => {
+                const list = document.getElementById('attitudeList');
+                list.innerHTML = '';
+
+                for (let key in data) {
+                    let btn = document.createElement('button');
+                    btn.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium">${key}</span>
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <p class="text-sm text-gray-400 text-left mt-1">${data[key].substring(0, 100)}...</p>
+                    `;
+                    btn.className = 'w-full bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 text-left transition-all duration-200 text-white';
+                    btn.onclick = () => editAttitude(key, data[key]);
+                    list.appendChild(btn);
+                }
+            }).catch(err => {
+                console.log('Error loading attitudes:', err);
+            });
+        }
+
+        function saveAttitude() {
+            const name = document.getElementById('modalName').value;
+            const desc = document.getElementById('modalDesc').value;
+
+            if (!name.trim() || !desc.trim()) {
+                alert('Por favor completa todos los campos');
+                return;
+            }
+
+            fetch('/save_attitude', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ old_name: editingAttitude, name, desc })
+            }).then(() => {
+                loadAttitudes();
+                closeModal();
+            }).catch(err => {
+                console.log('Error saving attitude:', err);
+                alert('Error al guardar la actitud');
+            });
+        }
+
+        function deleteAttitude() {
+            if (!editingAttitude) return;
+
+            if (confirm(`¿Estás seguro de que quieres eliminar la actitud "${editingAttitude}"?`)) {
+                fetch('/delete_attitude', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: editingAttitude })
+                }).then(() => {
+                    loadAttitudes();
+                    closeModal();
+                }).catch(err => {
+                    console.log('Error deleting attitude:', err);
+                    alert('Error al eliminar la actitud');
+                });
+            }
+        }
+
+        function saveClienteConfig() {
+            const negocio = document.getElementById('negocioText').value;
+            const reglas = document.getElementById('reglasText').value;
+
+            fetch('/save_cliente', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ negocio, reglas })
+            }).then(() => {
+                alert('Configuración guardada exitosamente');
+            }).catch(err => {
+                console.log('Error saving cliente config:', err);
+                alert('Error al guardar la configuración');
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadAttitudes();
+
+            // Load configuration
+            fetch('/load_config').then(res => res.json()).then(data => {
+                document.getElementById('negocioText').value = data.negocio || '';
+                document.getElementById('reglasText').value = data.reglas || '';
+            }).catch(err => {
+                console.log('Error loading config:', err);
+            });
+        });
+    </script>
+</body>
+</html>

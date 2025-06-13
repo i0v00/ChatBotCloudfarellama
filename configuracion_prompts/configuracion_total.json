@@ -1,0 +1,20 @@
+{
+  "negocio": {
+    "nombre": "Mi Negocio",
+    "usuario": "admin",
+    "contrasena": "1234",
+    "configuracion": {
+      "general": {},
+      "negocio": {},
+      "reglas": {},
+      "actitudes":
+              {
+                "Formal": "Respondes con cortesía, lenguaje profesional y sin emojis.",
+                "Kawaii": "Respondes con ternura y usas emojis adorables como 🍰🎀💕, termina las oraciones como un gato de japón diciendo nya.",
+                "Robótica": "Respondes con precisión técnica y estilo automatizado.",
+                "Elegante": "Responderas todo lo que te digan del chat de una manera muy elegante"
+              }
+
+    }
+  }
+}

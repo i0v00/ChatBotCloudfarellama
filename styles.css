@@ -1,0 +1,91 @@
+/* Configuración de Tailwind personalizada */
+:root {
+  --burgundy-50: #fdf2f2;
+  --burgundy-100: #fce7e7;
+  --burgundy-200: #f9d5d5;
+  --burgundy-300: #f4b5b5;
+  --burgundy-400: #ec8888;
+  --burgundy-500: #e05d5d;
+  --burgundy-600: #cd3f3f;
+  --burgundy-700: #ab2f2f;
+  --burgundy-800: #8d2929;
+  --burgundy-900: #460000;
+  --burgundy-950: #2d0000;
+}
+
+.chat-pattern {
+  background-color: #0d1117;
+  background-image: radial-gradient(circle at 1px 1px, rgba(70, 0, 0, 0.15) 1px, transparent 0);
+  background-size: 20px 20px;
+}
+
+.message-bubble {
+  max-width: 70%;
+  word-wrap: break-word;
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.user-message {
+  background: linear-gradient(135deg, #460000, #2d0000);
+  color: white;
+  border-radius: 18px 18px 4px 18px;
+  margin-left: auto;
+}
+
+.ai-message {
+  background: linear-gradient(135deg, #1f2937, #111827);
+  color: #e5e7eb;
+  border-radius: 18px 18px 18px 4px;
+  margin-right: auto;
+  border: 1px solid #374151;
+}
+
+.thinking-animation {
+  animation: pulse 1.5s infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.tab-active {
+  background: linear-gradient(135deg, #460000, #2d0000);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.tab-inactive {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+.tab-inactive:hover {
+  background: linear-gradient(135deg, #5b6470, #3b4553);
+}
+
+.modal-backdrop {
+  backdrop-filter: blur(4px);
+}
+
+.gradient-bg {
+  background: linear-gradient(135deg, #0f0f0f, #1a0000, #460000);
+}
+
+.card-shadow {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}

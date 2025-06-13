@@ -1,0 +1,5 @@
+.venv/
+_pycache_
+configuracion_admin.py
+configuracion_cliente.py
+main.py

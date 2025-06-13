@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ChatBot Creator - Crea Chatbots Inteligentes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Configuración de Tailwind personalizada */
+        :root {
+            --burgundy-50: #fdf2f2;
+            --burgundy-100: #fce7e7;
+            --burgundy-200: #f9d5d5;
+            --burgundy-300: #f4b5b5;
+            --burgundy-400: #ec8888;
+            --burgundy-500: #e05d5d;
+            --burgundy-600: #cd3f3f;
+            --burgundy-700: #ab2f2f;
+            --burgundy-800: #8d2929;
+            --burgundy-900: #460000;
+            --burgundy-950: #2d0000;
+        }
+
+        .chat-pattern {
+            background-color: #0d1117;
+            background-image: radial-gradient(circle at 1px 1px, rgba(70, 0, 0, 0.15) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+
+        .message-bubble {
+            max-width: 70%;
+            word-wrap: break-word;
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .user-message {
+            background: linear-gradient(135deg, #460000, #2d0000);
+            color: white;
+            border-radius: 18px 18px 4px 18px;
+            margin-left: auto;
+        }
+
+        .ai-message {
+            background: linear-gradient(135deg, #1f2937, #111827);
+            color: #e5e7eb;
+            border-radius: 18px 18px 18px 4px;
+            margin-right: auto;
+            border: 1px solid #374151;
+        }
+
+        .thinking-animation {
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 0.5;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+
+        .tab-active {
+            background: linear-gradient(135deg, #460000, #2d0000);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .tab-inactive {
+            background: linear-gradient(135deg, #6b7280, #4b5563);
+        }
+
+        .tab-inactive:hover {
+            background: linear-gradient(135deg, #5b6470, #3b4553);
+        }
+
+        .modal-backdrop {
+            backdrop-filter: blur(4px);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #0f0f0f, #1a0000, #460000);
+        }
+
+        .card-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .burgundy-gradient {
+            background: linear-gradient(135deg, var(--burgundy-900), var(--burgundy-950));
+        }
+
+        .burgundy-btn {
+            background: linear-gradient(135deg, var(--burgundy-600), var(--burgundy-700));
+        }
+
+        .burgundy-btn:hover {
+            background: linear-gradient(135deg, var(--burgundy-700), var(--burgundy-800));
+        }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .typing-animation {
+            animation: typing 2s steps(40, end), blink-caret 0.75s step-end infinite;
+            white-space: nowrap;
+            overflow: hidden;
+            border-right: 3px solid var(--burgundy-500);
+        }
+
+        @keyframes typing {
+            from { width: 0; }
+            to { width: 100%; }
+        }
+
+        @keyframes blink-caret {
+            from, to { border-color: transparent; }
+            50% { border-color: var(--burgundy-500); }
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen text-white">
+    <!-- Navigation -->
+    <nav class="fixed w-full z-50 bg-black/20 backdrop-blur-md border-b border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center h-16">
+                <div class="flex items-center">
+                    <i class="fas fa-robot text-2xl mr-2" style="color: var(--burgundy-500);"></i>
+                    <span class="text-xl font-bold">ChatBot Creator</span>
+                </div>
+                
+                <div class="hidden md:flex items-center space-x-8">
+                    <a href="#inicio" class="hover:text-red-300 transition-colors">Inicio</a>
+                    <a href="#caracteristicas" class="hover:text-red-300 transition-colors">Características</a>
+                    <a href="#precios" class="hover:text-red-300 transition-colors">Precios</a>
+                    <a href="#contacto" class="hover:text-red-300 transition-colors">Contacto</a>
+                </div>
+
+                <div class="flex items-center space-x-4">
+    <!-- User Profile (Hidden by default) -->
+    <div id="userProfile" class="hidden items-center space-x-3">
+        <img id="userImage" class="w-8 h-8 rounded-full" alt="User">
+        <span id="userName" class="text-sm"></span>
+        <button onclick="signOut()" class="burgundy-btn px-4 py-2 rounded-lg text-sm hover:scale-105 transition-transform">
+            Cerrar Sesión
+        </button>
+    </div>
+
+    <!-- Sign In and Sign Up Buttons (Visible by default) -->
+    <div id="authButtons" class="flex items-center space-x-3">
+        <button onclick="showLoginModal()" class="border-2 border-white/20 px-4 py-2 rounded-lg text-sm hover:bg-white/10 transition-colors">
+            Iniciar Sesión
+        </button>
+        <button onclick="showSignUpModal()" class="burgundy-btn px-4 py-2 rounded-lg text-sm hover:scale-105 transition-transform">
+            Crear Cuenta
+        </button>
+    </div>
+</div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="inicio" class="pt-20 pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="space-y-8">
+                    <h1 class="text-5xl lg:text-6xl font-bold leading-tight">
+                        Crea <span style="color: var(--burgundy-500);">Chatbots</span><br>
+                        <span class="typing-animation">Inteligentes</span>
+                    </h1>
+                    <p class="text-xl text-gray-300 leading-relaxed">
+                        Transforma tu negocio con chatbots potenciados por IA.
+                        Sin código, sin complicaciones, solo resultados increíbles.
+                    </p>
+                    <div class="flex flex-col sm:flex-row gap-4">
+                        <button class="burgundy-btn px-8 py-4 rounded-lg text-lg font-semibold hover:scale-105 transition-transform">
+                            <i class="fas fa-rocket mr-2"></i>
+                            Comenzar Gratis
+                        </button>
+                        <button class="border-2 border-white/20 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition-colors">
+                            <i class="fas fa-play mr-2"></i>
+                            Ver Demo
+                        </button>
+                    </div>
+                </div>
+
+                <div class="relative">
+                    <div class="chat-pattern rounded-2xl p-6 card-shadow floating-animation">
+                        <div class="space-y-4">
+                            <div class="ai-message message-bubble p-4">
+                                <p>¡Hola! Soy tu asistente virtual. ¿En qué puedo ayudarte hoy?</p>
+                            </div>
+                            <div class="user-message message-bubble p-4">
+                                <p>Quiero información sobre sus servicios</p>
+                            </div>
+                            <div class="ai-message message-bubble p-4">
+                                <p>¡Perfecto! Te puedo ayudar con información sobre nuestros planes, características y precios. ¿Qué te interesa más?</p>
+                            </div>
+                            <div class="thinking-animation ai-message message-bubble p-4">
+                                <div class="flex items-center space-x-2">
+                                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.1s;"></div>
+                                    <div class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0.2s;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section id="caracteristicas" class="py-20 bg-black/20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">Características Poderosas</h2>
+                <p class="text-xl text-gray-300">Todo lo que necesitas para crear chatbots excepcionales</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 card-shadow hover:scale-105 transition-transform">
+                    <div class="w-12 h-12 burgundy-gradient rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-brain text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">IA Avanzada</h3>
+                    <p class="text-gray-300">Procesamiento de lenguaje natural de última generación para conversaciones más humanas.</p>
+                </div>
+
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 card-shadow hover:scale-105 transition-transform">
+                    <div class="w-12 h-12 burgundy-gradient rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-code text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Sin Código</h3>
+                    <p class="text-gray-300">Interfaz visual intuitiva. Crea chatbots complejos sin escribir una línea de código.</p>
+                </div>
+
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 card-shadow hover:scale-105 transition-transform">
+                    <div class="w-12 h-12 burgundy-gradient rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-plug text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Integraciones</h3>
+                    <p class="text-gray-300">Conecta con WhatsApp, Telegram, Facebook Messenger y más plataformas.</p>
+                </div>
+
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 card-shadow hover:scale-105 transition-transform">
+                    <div class="w-12 h-12 burgundy-gradient rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-chart-line text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Analytics</h3>
+                    <p class="text-gray-300">Métricas detalladas y análisis en tiempo real del rendimiento de tus chatbots.</p>
+                </div>
+
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 card-shadow hover:scale-105 transition-transform">
+                    <div class="w-12 h-12 burgundy-gradient rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-shield-alt text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">Seguridad</h3>
+                    <p class="text-gray-300">Encriptación de extremo a extremo y cumplimiento con estándares de seguridad.</p>
+                </div>
+
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-6 card-shadow hover:scale-105 transition-transform">
+                    <div class="w-12 h-12 burgundy-gradient rounded-lg flex items-center justify-center mb-4">
+                        <i class="fas fa-clock text-xl"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold mb-3">24/7 Disponible</h3>
+                    <p class="text-gray-300">Tus chatbots trabajan las 24 horas, los 7 días de la semana sin descanso.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Section -->
+    <section id="precios" class="py-20">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-4xl font-bold mb-4">Planes para Todos</h2>
+                <p class="text-xl text-gray-300">Elige el plan perfecto para tu negocio</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-8">
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-8 card-shadow">
+                    <h3 class="text-2xl font-bold mb-4">Básico</h3>
+                    <div class="text-4xl font-bold mb-6">
+                        <span style="color: var(--burgundy-500);">Bs. 70</span>
+                        <span class="text-lg text-gray-400">/mes</span>
+                    </div>
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>1 Chatbot</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>1,000 mensajes/mes</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>Soporte por email</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>Integraciones básicas</li>
+                    </ul>
+                    <button class="w-full border-2 border-white/20 py-3 rounded-lg hover:bg-white/10 transition-colors">
+                        Comenzar
+                    </button>
+                </div>
+
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-8 card-shadow border-2" style="border-color: var(--burgundy-500);">
+                    <div class="text-center mb-4">
+                        <span class="burgundy-btn px-3 py-1 rounded-full text-sm">Más Popular</span>
+                    </div>
+                    <h3 class="text-2xl font-bold mb-4">Pro</h3>
+                    <div class="text-4xl font-bold mb-6">
+                        <span style="color: var(--burgundy-500);">Bs. 130</span>
+                        <span class="text-lg text-gray-400">/mes</span>
+                    </div>
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>5 Chatbots</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>10,000 mensajes/mes</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>Soporte prioritario</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>Todas las integraciones</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>Analytics avanzados</li>
+                    </ul>
+                    <button class="w-full burgundy-btn py-3 rounded-lg hover:scale-105 transition-transform">
+                        Comenzar
+                    </button>
+                </div>
+
+                <div class="bg-white/5 backdrop-blur-sm rounded-xl p-8 card-shadow">
+                    <h3 class="text-2xl font-bold mb-4">Enterprise</h3>
+                    <div class="text-4xl font-bold mb-6">
+                        <span style="color: var(--burgundy-500);">Bs 700</span>
+                        <span class="text-lg text-gray-400">/mes</span>
+                    </div>
+                    <ul class="space-y-3 mb-8">
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>Chatbots ilimitados</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>Mensajes ilimitados</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>Soporte 24/7</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>API personalizada</li>
+                        <li class="flex items-center"><i class="fas fa-check mr-3" style="color: var(--burgundy-500);"></i>Onboarding dedicado</li>
+                    </ul>
+                    <button class="w-full border-2 border-white/20 py-3 rounded-lg hover:bg-white/10 transition-colors">
+                        Contactar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contacto" class="py-20 bg-black/20">
+        <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <h2 class="text-4xl font-bold mb-8">¿Listo para Comenzar?</h2>
+            <p class="text-xl text-gray-300 mb-8">
+                Únete a miles de empresas que ya están transformando su atención al cliente
+            </p>
+            <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                <button class="burgundy-btn px-8 py-4 rounded-lg text-lg font-semibold hover:scale-105 transition-transform">
+                    <i class="fas fa-rocket mr-2"></i>
+                    Comenzar Gratis
+                </button>
+                <button class="border-2 border-white/20 px-8 py-4 rounded-lg text-lg font-semibold hover:bg-white/10 transition-colors">
+                    <i class="fas fa-calendar mr-2"></i>
+                    Agendar Demo
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-white/10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="grid md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center mb-4">
+                        <i class="fas fa-robot text-2xl mr-2" style="color: var(--burgundy-500);"></i>
+                        <span class="text-xl font-bold">ChatBot Creator</span>
+                    </div>
+                    <p class="text-gray-400">Creando el futuro de la comunicación automatizada.</p>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">Producto</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Características</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Precios</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Integraciones</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">API</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">Soporte</h4>
+                    <ul class="space-y-2 text-gray-400">
+                        <li><a href="#" class="hover:text-white transition-colors">Documentación</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Tutoriales</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Contacto</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Estado del Sistema</a></li>
+                    </ul>
+                </div>
+
+                <div>
+                    <h4 class="font-semibold mb-4">Síguenos</h4>
+                    <div class="flex space-x-4">
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-twitter text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-linkedin text-xl"></i>
+                        </a>
+                        <a href="#" class="text-gray-400 hover:text-white transition-colors">
+                            <i class="fab fa-github text-xl"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-t border-white/10 mt-8 pt-8 text-center text-gray-400">
+                <p>&copy; 2024 ChatBot Creator. Todos los derechos reservados.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Login Modal -->
+<div id="loginModal" class="fixed inset-0 z-50 hidden modal-backdrop bg-black/50 flex items-center justify-center">
+    <div class="bg-gray-900 rounded-xl p-8 max-w-md w-full mx-4 card-shadow">
+        <div class="text-center mb-6">
+            <h3 class="text-2xl font-bold mb-2">Iniciar Sesión</h3>
+            <p class="text-gray-400">Accede a tu cuenta para continuar</p>
+        </div>
+
+        <!-- Google Sign In Button -->
+        <div class="mb-6">
+            <div id="g_id_signin_login" class="flex justify-center"></div>
+        </div>
+
+        <div class="relative mb-6">
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-white/20"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-gray-900 text-gray-400">O continúa con email</span>
+            </div>
+        </div>
+
+        <form class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Email</label>
+                <input type="email" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-red-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Contraseña</label>
+                <input type="password" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-red-500">
+            </div>
+            <button type="submit" class="w-full burgundy-btn py-3 rounded-lg font-semibold hover:scale-105 transition-transform">
+                Iniciar Sesión
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-gray-400">¿No tienes cuenta?
+                <button onclick="hideLoginModal(); showSignUpModal();" class="text-red-400 hover:text-red-300 font-semibold">
+                    Crear cuenta
+                </button>
+            </p>
+        </div>
+
+        <button onclick="hideLoginModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+    </div>
+</div>
+
+<!-- Sign Up Modal -->
+<div id="signUpModal" class="fixed inset-0 z-50 hidden modal-backdrop bg-black/50 flex items-center justify-center">
+    <div class="bg-gray-900 rounded-xl p-8 max-w-md w-full mx-4 card-shadow">
+        <div class="text-center mb-6">
+            <h3 class="text-2xl font-bold mb-2">Crear Cuenta</h3>
+            <p class="text-gray-400">Únete a nuestra plataforma</p>
+        </div>
+
+        <!-- Google Sign Up Button -->
+        <div class="mb-6">
+            <div id="g_id_signin_signup" class="flex justify-center"></div>
+        </div>
+
+        <div class="relative mb-6">
+            <div class="absolute inset-0 flex items-center">
+                <div class="w-full border-t border-white/20"></div>
+            </div>
+            <div class="relative flex justify-center text-sm">
+                <span class="px-2 bg-gray-900 text-gray-400">O regístrate con email</span>
+            </div>
+        </div>
+
+        <form class="space-y-4">
+            <div>
+                <label class="block text-sm font-medium mb-2">Nombre completo</label>
+                <input type="text" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-red-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Email</label>
+                <input type="email" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-red-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Contraseña</label>
+                <input type="password" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-red-500">
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2">Confirmar contraseña</label>
+                <input type="password" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg focus:outline-none focus:border-red-500">
+            </div>
+            <button type="submit" class="w-full burgundy-btn py-3 rounded-lg font-semibold hover:scale-105 transition-transform">
+                Crear Cuenta
+            </button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <p class="text-gray-400">¿Ya tienes cuenta?
+                <button onclick="hideSignUpModal(); showLoginModal();" class="text-red-400 hover:text-red-300 font-semibold">
+                    Iniciar sesión
+                </button>
+            </p>
+        </div>
+
+        <button onclick="hideSignUpModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white">
+            <i class="fas fa-times text-xl"></i>
+        </button>
+    </div>
+</div>
+
+    <script>
+    // Google Sign-In Configuration
+    function handleCredentialResponse(response) {
+        // Decode the JWT token (in a real app, verify this on your server)
+        const responsePayload = decodeJwtResponse(response.credential);
+
+        // Update UI with user info
+        document.getElementById('userName').textContent = responsePayload.name;
+        document.getElementById('userImage').src = responsePayload.picture;
+
+        // Show user profile, hide auth buttons
+        document.getElementById('userProfile').classList.remove('hidden');
+        document.getElementById('userProfile').classList.add('flex');
+        document.getElementById('authButtons').classList.add('hidden');
+
+        // Hide modals if open
+        hideLoginModal();
+        hideSignUpModal();
+
+        console.log('User signed in:', responsePayload);
+    }
+
+    function decodeJwtResponse(token) {
+        const base64Url = token.split('.')[1];
+        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
+    function signOut() {
+        google.accounts.id.disableAutoSelect();
+
+        // Reset UI
+        document.getElementById('userProfile').classList.add('hidden');
+        document.getElementById('userProfile').classList.remove('flex');
+        document.getElementById('authButtons').classList.remove('hidden');
+
+        console.log('User signed out');
+    }
+
+    // Modal functions
+    function showLoginModal() {
+        document.getElementById('loginModal').classList.remove('hidden');
+    }
+
+    function hideLoginModal() {
+        document.getElementById('loginModal').classList.add('hidden');
+    }
+
+    function showSignUpModal() {
+        document.getElementById('signUpModal').classList.remove('hidden');
+    }
+
+    function hideSignUpModal() {
+        document.getElementById('signUpModal').classList.add('hidden');
+    }
+
+    // Smooth scrolling for navigation links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Initialize Google Sign-In when page loads
+    window.onload = function () {
+        google.accounts.id.initialize({
+            client_id: "YOUR_GOOGLE_CLIENT_ID", // Replace with your actual Google Client ID
+            callback: handleCredentialResponse
+        });
+
+        // Render the sign-in buttons for both modals
+        google.accounts.id.renderButton(
+            document.getElementById("g_id_signin_login"),
+            {
+                theme: "filled_black",
+                size: "large",
+                type: "standard",
+                text: "signin_with",
+                width: 300
+            }
+        );
+
+        google.accounts.id.renderButton(
+            document.getElementById("g_id_signin_signup"),
+            {
+                theme: "filled_black",
+                size: "large",
+                type: "standard",
+                text: "signup_with",
+                width: 300
+            }
+        );
+    };
+
+    // Close modals when clicking outside
+    document.getElementById('loginModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideLoginModal();
+        }
+    });
+
+    document.getElementById('signUpModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            hideSignUpModal();
+        }
+    });
+</script>
