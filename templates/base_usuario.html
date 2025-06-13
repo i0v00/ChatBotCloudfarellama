@@ -1,0 +1,77 @@
+<!-- base_usuario.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ChatBot InteLGnBOT{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'burgundy': {
+                            50: '#fdf2f2',
+                            100: '#fce7e7',
+                            200: '#f9d5d5',
+                            300: '#f4b5b5',
+                            400: '#ec8888',
+                            500: '#e05d5d',
+                            600: '#cd3f3f',
+                            700: '#ab2f2f',
+                            800: '#8d2929',
+                            900: '#460000',
+                            950: '#2d0000'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body class="gradient-bg min-h-screen text-gray-100">
+
+    <!-- Nombre del negocio -->
+    <div class="bg-gray-800 text-center py-2 text-lg font-bold text-white">
+        Negocio actual: <span id="business-name" class="text-burgundy-300">Cargando...</span>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex bg-gray-900 shadow-lg">
+        <a href="{{ url_for('chat') }}" class="tab-inactive px-6 py-4 font-semibold flex-1 text-center" id="tab-chat">Chat</a>
+        <a href="{{ url_for('cliente') }}" class="tab-inactive px-6 py-4 font-semibold flex-1 text-center" id="tab-cliente">Cliente</a>
+        <a href="{{ url_for('admin') }}" class="tab-inactive px-6 py-4 font-semibold flex-1 text-center" id="tab-admin">Admin</a>
+    </div>
+
+    <!-- Contenido dinámico -->
+    <div class="p-6">
+        {% block content %}{% endblock %}
+    </div>
+
+    <script>
+        const currentPage = window.location.pathname.split('/').pop();
+        const tabs = document.querySelectorAll('[id^="tab-"]');
+        tabs.forEach(tab => tab.classList.replace('tab-active', 'tab-inactive'));
+
+        if (currentPage.includes('chat')) {
+            document.getElementById('tab-chat')?.classList.replace('tab-inactive', 'tab-active');
+        } else if (currentPage.includes('cliente')) {
+            document.getElementById('tab-cliente')?.classList.replace('tab-inactive', 'tab-active');
+        } else if (currentPage.includes('admin')) {
+            document.getElementById('tab-admin')?.classList.replace('tab-inactive', 'tab-active');
+        }
+
+        fetch("/get_business_name")
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("business-name").textContent = data.nombre;
+            })
+            .catch(() => {
+                document.getElementById("business-name").textContent = "Error";
+            });
+    </script>
+
+</body>
+</html>

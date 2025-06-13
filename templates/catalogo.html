@@ -1,0 +1,148 @@
+{% extends 'base_usuario.html' %}
+
+{% block title %}Cliente - InteLGnBOT{% endblock %}
+
+{% block content %}
+    <!-- Catálogo Content -->
+    <div class="p-6">
+        <div class="max-w-4xl mx-auto space-y-6">
+            <div class="bg-gray-800 rounded-lg p-6 card-shadow">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-white">Catálogo de Productos y Servicios</h3>
+                    <button onclick="openAddCatalogModal()"
+                            class="bg-gradient-to-r from-burgundy-600 to-burgundy-700 hover:from-burgundy-700 hover:to-burgundy-800 text-white px-4 py-2 rounded-lg transition-all duration-200 flex items-center gap-2">
+                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd"></path>
+                        </svg>
+                        Agregar Item
+                    </button>
+                </div>
+                <div id="catalogoList" class="grid gap-2"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para agregar/editar -->
+    <div class="modal fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50" id="catalogModal">
+        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md mx-4">
+            <h4 id="catalogModalTitle" class="text-xl font-semibold text-white mb-4"></h4>
+
+            <div class="space-y-4">
+                <input type="text" id="catalogKey" placeholder="ID único (sin espacios)"
+                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400">
+                <input type="text" id="catalogNombre" placeholder="Nombre del producto o servicio"
+                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400">
+                <input type="text" id="catalogTipo" placeholder="producto o servicio"
+                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400">
+                <input type="number" step="0.01" id="catalogPrecio" placeholder="Precio"
+                    class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400">
+                <textarea id="catalogDescripcion" placeholder="Descripción"
+                    class="w-full h-24 bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white"></textarea>
+            </div>
+
+            <div class="flex gap-3 mt-6">
+                <button onclick="saveCatalogItem()" class="flex-1 bg-green-600 hover:bg-green-700 text-white py-2 px-4 rounded-lg">Guardar</button>
+                <button onclick="deleteCatalogItem()" class="bg-red-600 hover:bg-red-700 text-white py-2 px-4 rounded-lg">Eliminar</button>
+                <button onclick="closeCatalogModal()" class="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg">Cancelar</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let editingCatalogId = '';
+
+        function openAddCatalogModal() {
+            editingCatalogId = '';
+            document.getElementById("catalogModalTitle").textContent = "Agregar al catálogo";
+            document.getElementById("catalogKey").value = '';
+            document.getElementById("catalogNombre").value = '';
+            document.getElementById("catalogTipo").value = '';
+            document.getElementById("catalogPrecio").value = '';
+            document.getElementById("catalogDescripcion").value = '';
+            document.getElementById("catalogModal").classList.remove("hidden");
+            document.getElementById("catalogModal").classList.add("flex");
+        }
+
+        function editCatalogItem(id, item) {
+            editingCatalogId = id;
+            document.getElementById("catalogModalTitle").textContent = "Editar: " + id;
+            document.getElementById("catalogKey").value = id;
+            document.getElementById("catalogNombre").value = item.nombre;
+            document.getElementById("catalogTipo").value = item.tipo;
+            document.getElementById("catalogPrecio").value = item.precio;
+            document.getElementById("catalogDescripcion").value = item.descripcion;
+            document.getElementById("catalogModal").classList.remove("hidden");
+            document.getElementById("catalogModal").classList.add("flex");
+        }
+
+        function closeCatalogModal() {
+            document.getElementById("catalogModal").classList.add("hidden");
+            document.getElementById("catalogModal").classList.remove("flex");
+        }
+
+        function loadCatalogo() {
+            fetch('/get_catalogo').then(res => res.json()).then(data => {
+                const list = document.getElementById('catalogoList');
+                list.innerHTML = '';
+
+                for (let id in data) {
+                    let item = data[id];
+                    let btn = document.createElement('button');
+                    btn.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <span class="font-medium">${item.nombre} - ${item.precio} Bs</span>
+                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clip-rule="evenodd"></path>
+                            </svg>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-1">${item.descripcion.substring(0, 100)}...</p>
+                    `;
+                    btn.className = 'w-full bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 text-left text-white';
+                    btn.onclick = () => editCatalogItem(id, item);
+                    list.appendChild(btn);
+                }
+            });
+        }
+
+        function saveCatalogItem() {
+            const id = document.getElementById("catalogKey").value.trim();
+            const nombre = document.getElementById("catalogNombre").value.trim();
+            const tipo = document.getElementById("catalogTipo").value.trim();
+            const precio = parseFloat(document.getElementById("catalogPrecio").value.trim());
+            const descripcion = document.getElementById("catalogDescripcion").value.trim();
+            const prompt = `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} ${nombre} con precio ${precio} Bs`;
+
+            if (!id || !nombre || !tipo || isNaN(precio) || !descripcion) {
+                alert("Completa todos los campos correctamente");
+                return;
+            }
+
+            fetch('/save_catalogo', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, tipo, nombre, precio, descripcion, prompt, old_id: editingCatalogId })
+            }).then(() => {
+                loadCatalogo();
+                closeCatalogModal();
+            });
+        }
+
+        function deleteCatalogItem() {
+            if (!editingCatalogId) return;
+            if (confirm(`¿Eliminar el ítem "${editingCatalogId}"?`)) {
+                fetch('/delete_catalogo', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: editingCatalogId })
+                }).then(() => {
+                    loadCatalogo();
+                    closeCatalogModal();
+                });
+            }
+        }
+
+        document.addEventListener("DOMContentLoaded", () => {
+            loadCatalogo();
+        });
+    </script>
+{% endblock %}

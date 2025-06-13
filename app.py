@@ -22,7 +22,8 @@ def cargar_config():
                     "general": {"content": ""},
                     "negocio": {"content": ""},
                     "reglas": {"content": ""},
-                    "actitudes": {}
+                    "actitudes": {},
+                    "catalogo": {}  # Nuevo campo aquí
                 }
             }
         }
@@ -31,9 +32,55 @@ def cargar_config():
     with open(RUTA_CONFIGURACION, "r", encoding="utf-8") as f:
         return json.load(f)
 
+
 def guardar_config(data):
     with open(RUTA_CONFIGURACION, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
+
+@app.route("/get_catalogo")
+def get_catalogo():
+    data = cargar_config()
+    catalogo = data["negocio"]["configuracion"].get("catalogo", {})
+    return jsonify(catalogo)
+
+@app.route("/save_catalogo_item", methods=["POST"])
+def save_catalogo_item():
+    req = request.get_json()
+    clave = req.get("clave")  # Ej. "papas_fritas"
+    tipo = req.get("tipo")    # "producto" o "servicio"
+    nombre = req.get("nombre")
+    precio = req.get("precio")
+    descripcion = req.get("descripcion")
+
+    prompt = f"{tipo.capitalize()} {nombre} con precio {precio} Bs"
+
+    data = cargar_config()
+    catalogo = data["negocio"]["configuracion"].get("catalogo", {})
+    catalogo[clave] = {
+        "tipo": tipo,
+        "nombre": nombre,
+        "precio": precio,
+        "descripcion": descripcion,
+        "prompt": prompt
+    }
+
+    data["negocio"]["configuracion"]["catalogo"] = catalogo
+    guardar_config(data)
+    return jsonify({"status": "ok"})
+
+@app.route("/delete_catalogo_item", methods=["POST"])
+def delete_catalogo_item():
+    req = request.get_json()
+    clave = req.get("clave")
+
+    data = cargar_config()
+    catalogo = data["negocio"]["configuracion"].get("catalogo", {})
+    if clave in catalogo:
+        del catalogo[clave]
+        data["negocio"]["configuracion"]["catalogo"] = catalogo
+        guardar_config(data)
+    return jsonify({"status": "ok"})
+
 @app.route("/")
 def index():
     return render_template("chat.html")
@@ -52,7 +99,7 @@ def admin():
 
 @app.route("/navbar")
 def navbar():
-    return render_template("navbar_usuario.html")
+    return render_template("base_usuario.html")
 
 # ---------------------- API de actitudes ----------------------
 

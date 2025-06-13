@@ -1,5 +1,5 @@
 .venv/
-_pycache_
+__pycache__/
 configuracion_admin.py
 configuracion_cliente.py
 main.py
