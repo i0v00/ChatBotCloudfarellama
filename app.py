@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, url_for
 import json
 import os
 import requests
@@ -83,11 +83,22 @@ def delete_catalogo_item():
 
 @app.route("/")
 def index():
-    return render_template("chat.html")
+    return render_template("index.html")
+@app.route("/index.html")
+def landingpage():
+    return render_template("index.html")
+
+@app.route('/modelos')
+def modelos():
+    return render_template('modelos.html')
 
 @app.route("/chat")
 def chat():
     return render_template("chat.html")
+
+@app.route("/chatprueba")
+def chatprueba():
+    return render_template("chatprueba.html")
 
 @app.route("/cliente")
 def cliente():

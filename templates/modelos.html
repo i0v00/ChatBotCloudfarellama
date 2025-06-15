@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DUKE'S CAKE'S - Catálogo 3D</title>
+    <link href="../static/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/build/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/EXRLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        burgundy: {
+                            50: '#fdf2f8',
+                            100: '#fce7f3',
+                            200: '#fbcfe8',
+                            300: '#f9a8d4',
+                            400: '#f472b6',
+                            500: '#ec4899',
+                            600: '#db2777',
+                            700: '#be185d',
+                            800: '#9d174d',
+                            900: '#831843',
+                        },
+                        primary: '#8B4513',
+                        secondary: '#D2691E'
+                    },
+                    fontFamily: {
+                        'playfair': ['Playfair Display', 'serif'],
+                        'poppins': ['Poppins', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .hero-bg {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('../static/assets/img/hero-bg.jpg');
+            background-size: cover;
+            background-position: center;
+        }
+
+        .preview-canvas {
+            width: 100%;
+            height: 200px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .preview-canvas:hover {
+            transform: scale(1.05);
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.9);
+        }
+
+        .modal-content {
+            position: relative;
+            width: 90%;
+            height: 90%;
+            margin: 2.5% auto;
+            background: #333;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .modal-canvas {
+            width: 100%;
+            height: calc(100% - 60px);
+        }
+
+        .modal-header {
+            background: #8B4513;
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: color 0.3s;
+        }
+
+        .close:hover {
+            color: #D2691E;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        .product-card:hover {
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+
+        @keyframes ping-slow {
+          0%, 100% { transform: scale(1); }
+          50% { transform: scale(1.15); }
+        }
+        .animate-ping-slow {
+          animation: ping-slow 1.5s infinite;
+        }
+    </style>
+</head>
+<body class="font-poppins">
+    <!-- Top Bar -->
+    <div class="bg-primary text-white py-2 fixed top-0 w-full z-40">
+        <div class="container mx-auto px-4 flex justify-center md:justify-between items-center text-sm">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"></path>
+                    </svg>
+                    76792255
+                </div>
+                <div class="flex items-center">
+                    <svg class="w-4 h-4 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-12a1 1 0 10-2 0v4a1 1 0 00.293.707l2.828 2.829a1 1 0 101.415-1.415L11 9.586V6z" clip-rule="evenodd"></path>
+                    </svg>
+                    LUN-SAB: 8AM - 19PM
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Header -->
+    <header class="bg-white shadow-lg fixed top-8 w-full z-30">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl md:text-3xl font-playfair font-bold text-primary">
+                <a href="index.html">DUKE'S CAKE'S</a>
+            </h1>
+
+            <nav class="hidden lg:flex space-x-8 items-center">
+                <a href="index.html#hero" class="text-gray-700 hover:text-primary transition-colors">INICIO</a>
+                <a href="index.html#about" class="text-gray-700 hover:text-primary transition-colors">ACERCA DE</a>
+                <a href="index.html#menu" class="text-gray-700 hover:text-primary transition-colors">MENU</a>
+                <a href="index.html#specials" class="text-gray-700 hover:text-primary transition-colors">ESPECIALES</a>
+                <a href="" class="text-gray-700 hover:text-primary transition-colors">EVENTOS</a>
+
+                <!-- Texto "Pastelería 3D" activo -->
+                <div class="relative inline-block">
+                     <a href="modelos" class="text-primary font-bold transition-colors">Pastelería 3D</a>
+                    <span class="absolute -top-4 -right-5 transform rotate-12 animate-pulse">
+                        <span class="bg-amber-800 text-white text-[10px] px-2 py-[2px] rounded-full shadow-md">Activo</span>
+                    </span>
+                </div>
+
+                <a href="index.html#gallery" class="text-gray-700 hover:text-primary transition-colors">GALERIA</a>
+                <a href="index.html#contact" class="text-gray-700 hover:text-primary transition-colors">CONTACTOS</a>
+            </nav>
+
+            <a href="http://localhost/sis_venta/" class="hidden lg:block bg-primary text-white px-6 py-2 rounded-full hover:bg-secondary transition-colors">LOGIN</a>
+
+            <button class="lg:hidden text-primary" onclick="toggleMobileMenu()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div id="mobileMenu" class="lg:hidden hidden bg-white border-t">
+            <div class="px-4 py-2 space-y-2">
+                <a href="index.html#hero" class="block py-2 text-gray-700 hover:text-primary">INICIO</a>
+                <a href="index.html#about" class="block py-2 text-gray-700 hover:text-primary">ACERCA DE</a>
+                <a href="index.html#menu" class="block py-2 text-gray-700 hover:text-primary">MENU</a>
+                <a href="index.html#specials" class="block py-2 text-gray-700 hover:text-primary">ESPECIALES</a>
+                <a href="index.html#events" class="block py-2 text-gray-700 hover:text-primary">EVENTOS</a>
+                <a href="#catalogo" class="block py-2 text-primary font-semibold">PASTELERÍA 3D</a>
+                <a href="index.html#gallery" class="block py-2 text-gray-700 hover:text-primary">GALERIA</a>
+                <a href="index.html#contact" class="block py-2 text-gray-700 hover:text-primary">CONTACTOS</a>
+                <a href="http://localhost/sis_venta/" class="block py-2 text-primary font-semibold">LOGIN</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero-bg min-h-screen flex items-center pt-20">
+        <div class="container mx-auto px-4 text-center text-white">
+            <div class="max-w-4xl mx-auto">
+                <h1 class="text-4xl md:text-6xl font-playfair font-bold mb-4">
+                    CATÁLOGO <span class="text-yellow-400">3D</span>
+                </h1>
+                <h2 class="text-xl md:text-2xl mb-8 font-light">
+                    "EXPLORA NUESTROS PRODUCTOS EN REALIDAD VIRTUAL"
+                </h2>
+                <a href="#catalogo" class="inline-block bg-primary hover:bg-secondary text-white px-8 py-3 rounded-full text-lg font-semibold transition-colors">
+                    VER CATÁLOGO
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Catálogo Section -->
+    <section id="catalogo" class="py-20 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-playfair font-bold text-gray-800 mb-2">CATÁLOGO 3D</h2>
+                <p class="text-2xl text-primary font-semibold">NUESTROS PRODUCTOS EN REALIDAD VIRTUAL</p>
+                <p class="text-gray-600 mt-4">Haz click en cualquier producto para verlo en detalle</p>
+            </div>
+
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Producto 1: Cupcake -->
+                <div class="product-card" onclick="openModal('Cupcake Deluxe', '/static/modelos/modelo1/scene.gltf')">
+                    <div class="p-4">
+                        <canvas class="preview-canvas" id="preview-1"></canvas>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-playfair font-bold text-gray-800 mb-2">Cupcake Deluxe</h3>
+                        <p class="text-gray-600 mb-3">Delicioso cupcake con decoración artesanal</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-primary">15 BS</span>
+                            <button class="bg-primary text-white px-4 py-2 rounded-full hover:bg-secondary transition-colors">
+                                Ver en 3D
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Producto 2: Torta -->
+                <div class="product-card" onclick="openModal('Torta Especial', '/static/modelos/modelo2/scene.gltf')">
+                    <div class="p-4">
+                        <canvas class="preview-canvas" id="preview-2"></canvas>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-playfair font-bold text-gray-800 mb-2">Torta Especial</h3>
+                        <p class="text-gray-600 mb-3">Torta de chocolate con decoración elegante</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-primary">45 BS</span>
+                            <button class="bg-primary text-white px-4 py-2 rounded-full hover:bg-secondary transition-colors">
+                                Ver en 3D
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Producto 3: Dona -->
+                <div class="product-card" onclick="openModal('Dona Glaseada', '/static/modelos/modelo3/scene.gltf')">
+                    <div class="p-4">
+                        <canvas class="preview-canvas" id="preview-3"></canvas>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-playfair font-bold text-gray-800 mb-2">Dona Glaseada</h3>
+                        <p class="text-gray-600 mb-3">Dona suave con glaseado de colores</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-primary">8 BS</span>
+                            <button class="bg-primary text-white px-4 py-2 rounded-full hover:bg-secondary transition-colors">
+                                Ver en 3D
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Producto 4: Brownie -->
+                <div class="product-card" onclick="openModal('Brownie Premium', '/static/modelos/modelo4/scene.gltf')">
+                    <div class="p-4">
+                        <canvas class="preview-canvas" id="preview-4"></canvas>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-playfair font-bold text-gray-800 mb-2">Brownie Premium</h3>
+                        <p class="text-gray-600 mb-3">Brownie de chocolate con nueces</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-primary">12 BS</span>
+                            <button class="bg-primary text-white px-4 py-2 rounded-full hover:bg-secondary transition-colors">
+                                Ver en 3D
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Producto 5: Alfajor -->
+                <div class="product-card" onclick="openModal('Alfajor Tradicional', '/static/modelos/modelo5/scene.gltf')">
+                    <div class="p-4">
+                        <canvas class="preview-canvas" id="preview-5"></canvas>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-playfair font-bold text-gray-800 mb-2">Alfajor Tradicional</h3>
+                        <p class="text-gray-600 mb-3">Alfajor casero con dulce de leche</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-primary">6 BS</span>
+                            <button class="bg-primary text-white px-4 py-2 rounded-full hover:bg-secondary transition-colors">
+                                Ver en 3D
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Producto 6: Croissant -->
+                <div class="product-card" onclick="openModal('Croissant Artesanal', '/static/modelos/modelo6/scene.gltf')">
+                    <div class="p-4">
+                        <canvas class="preview-canvas" id="preview-6"></canvas>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-xl font-playfair font-bold text-gray-800 mb-2">Croissant Artesanal</h3>
+                        <p class="text-gray-600 mb-3">Croissant francés recién horneado</p>
+                        <div class="flex justify-between items-center">
+                            <span class="text-2xl font-bold text-primary">10 BS</span>
+                            <button class="bg-primary text-white px-4 py-2 rounded-full hover:bg-secondary transition-colors">
+                                Ver en 3D
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Modal para visualización 3D -->
+    <div id="modelModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle" class="text-xl font-playfair font-bold">Producto 3D</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <div id="modalViewer" class="modal-canvas"></div>
+        </div>
+    </div>
+
+    <!-- Back to Top Button -->
+    <button id="backToTop" onclick="scrollToTop()" class="fixed bottom-6 right-6 bg-primary hover:bg-secondary text-white p-3 rounded-full shadow-lg hidden transition-all duration-300 transform hover:scale-110 z-40">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"></path>
+        </svg>
+    </button>
+
+    <script>
+        // Variables globales para el modal
+        let modalScene, modalCamera, modalRenderer, modalControls;
+        let previewScenes = [];
+        let previewRenderers = [];
+
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        }
+
+        // Inicializar previsualizaciones 3D
+        function initPreviews() {
+            for (let i = 1; i <= 6; i++) {
+                const canvas = document.getElementById(`preview-${i}`);
+                if (canvas) {
+                    initPreview(canvas, i);
+                }
+            }
+        }
+
+        function initPreview(canvas, index) {
+            const scene = new THREE.Scene();
+            const camera = new THREE.PerspectiveCamera(45, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true });
+
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            renderer.setClearColor(0xf5f5f5);
+
+            // Iluminación básica
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            scene.add(ambientLight);
+
+            const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            directionalLight.position.set(1, 1, 1);
+            scene.add(directionalLight);
+
+            camera.position.set(2, 2, 2);
+            camera.lookAt(0, 0, 0);
+
+            // Cargar modelo (usando el modelo por defecto si no existe el específico)
+            const loader = new THREE.GLTFLoader();
+            const modelPath = `/static/modelos/modelo${index}/scene.gltf`;
+
+            loader.load(modelPath, function(gltf) {
+                const model = gltf.scene;
+
+                // Centrar y escalar modelo
+                const box = new THREE.Box3().setFromObject(model);
+                const center = new THREE.Vector3();
+                box.getCenter(center);
+                model.position.sub(center);
+
+                const size = box.getSize(new THREE.Vector3());
+                const maxDim = Math.max(size.x, size.y, size.z);
+                const scale = 1.5 / maxDim;
+                model.scale.setScalar(scale);
+
+                scene.add(model);
+
+                // Animación de rotación
+                function animate() {
+                    requestAnimationFrame(animate);
+                    model.rotation.y += 0.01;
+                    renderer.render(scene, camera);
+                }
+                animate();
+
+            }, undefined, function(error) {
+                console.error(`Error cargando modelo ${index}:`, error);
+                // Crear un cubo como placeholder
+                const geometry = new THREE.BoxGeometry(1, 1, 1);
+                const material = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+                const cube = geometry;
+                scene.add(cube);
+
+                function animate() {
+                    requestAnimationFrame(animate);
+                    cube.rotation.y += 0.01;
+                    renderer.render(scene, camera);
+                }
+                animate();
+            });
+
+            previewScenes.push(scene);
+            previewRenderers.push(renderer);
+        }
+
+        // Abrir modal con visualizador 3D
+        function openModal(productName, modelPath) {
+            document.getElementById('modalTitle').textContent = productName;
+            document.getElementById('modelModal').style.display = 'block';
+
+            // Limpiar viewer anterior
+            const viewer = document.getElementById('modalViewer');
+            viewer.innerHTML = '';
+
+            // Crear nueva escena 3D
+            modalScene = new THREE.Scene();
+            modalCamera = new THREE.PerspectiveCamera(60, viewer.clientWidth / viewer.clientHeight, 0.1, 1000);
+            modalRenderer = new THREE.WebGLRenderer({ antialias: true });
+
+            modalRenderer.setSize(viewer.clientWidth, viewer.clientHeight);
+            modalRenderer.setClearColor(0x222222);
+            viewer.appendChild(modalRenderer.domElement);
+
+            // Controles de órbita
+            modalControls = new THREE.OrbitControls(modalCamera, modalRenderer.domElement);
+            modalControls.enableDamping = true;
+            modalControls.dampingFactor = 0.1;
+            modalControls.enablePan = false;
+            modalControls.target.set(0, 0, 0);
+
+            modalCamera.position.set(3, 2.5, 3);
+
+            // PMREMGenerator para el fondo EXR
+            const pmremGenerator = new THREE.PMREMGenerator(modalRenderer);
+            pmremGenerator.compileEquirectangularShader();
+
+            // Cargar fondo EXR
+            const exrLoader = new THREE.EXRLoader();
+            exrLoader.load('/static/fondo.exr', function(texture) {
+                const envMap = pmremGenerator.fromEquirectangular(texture).texture;
+                modalScene.environment = envMap;
+                modalScene.background = envMap;
+                texture.dispose();
+                pmremGenerator.dispose();
+            }, undefined, function(error) {
+                console.error('Error cargando EXR:', error);
+                // Fondo alternativo
+                modalScene.background = new THREE.Color(0x333333);
+            });
+
+            // Luz ambiental
+            modalScene.add(new THREE.AmbientLight(0xffffff, 0.2));
+
+            // Cargar modelo GLTF
+            const loader = new THREE.GLTFLoader();
+            loader.load(modelPath, function(gltf) {
+                const model = gltf.scene;
+
+                // Ocultar elementos no deseados (como mesas)
+                model.traverse((child) => {
+                    if (child.isMesh) {
+                        const name = child.name.toLowerCase();
+                        if (name.includes('mesa') || name.includes('ground') || name.includes('floor')) {
+                            child.visible = false;
+                        }
+                    }
+                });
+
+                modalScene.add(model);
+
+                // Centrar modelo
+                const box = new THREE.Box3().setFromObject(model);
+                const center = new THREE.Vector3();
+                box.getCenter(center);
+                model.position.sub(center);
+
+                model.scale.set(3, 3, 3);
+                model.rotation.set(Math.PI / 2, Math.PI, Math.PI / 2);
+
+            }, undefined, function(error) {
+                console.error('Error cargando modelo:', error);
+                // Crear placeholder
+                const geometry = new THREE.BoxGeometry(2, 2, 2);
+                const material = new THREE.MeshLambertMaterial({ color: 0x8B4513 });
+                const cube = new THREE.Mesh(geometry, material);
+                modalScene.add(cube);
+            });
+
+            // Iniciar animación
+            animateModal();
+        }
+
+        function animateModal() {
+            requestAnimationFrame(animateModal);
+            if (modalControls) modalControls.update();
+            if (modalRenderer && modalScene && modalCamera) {
+                modalRenderer.render(modalScene, modalCamera);
+            }
+        }
+
+        // Cerrar modal
+        function closeModal() {
+            document.getElementById('modelModal').style.display = 'none';
+
+            // Limpiar recursos
+            if (modalRenderer) {
+                modalRenderer.dispose();
+                modalRenderer = null;
+            }
+            if (modalControls) {
+                modalControls.dispose();
+                modalControls = null;
+            }
+            modalScene = null;
+            modalCamera = null;
+        }
+
+        // Cerrar modal al hacer click fuera
+        window.onclick = function(event) {
+            const modal = document.getElementById('modelModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+
+        // Smooth scrolling para enlaces de navegación
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Back to top functionality
+        function scrollToTop() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+        }
+
+        // Show/hide back to top button
+        window.addEventListener('scroll', function() {
+            const backToTop = document.getElementById('backToTop');
+            if (window.pageYOffset > 300) {
+                backToTop.classList.remove('hidden');
+            } else {
+                backToTop.classList.add('hidden');
+            }
+        });
+
+        // Redimensionar renderers cuando cambie el tamaño de ventana
+        window.addEventListener('resize', function() {
+            // Redimensionar previsualizaciones
+            previewRenderers.forEach((renderer, index) => {
+                const canvas = document.getElementById(`preview-${index + 1}`);
+                if (canvas && renderer) {
+                    renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+                }
+            });
+
+            // Redimensionar modal si está abierto
+            if (modalRenderer && modalCamera) {
+                const viewer = document.getElementById('modalViewer');
+                const width = viewer.clientWidth;
+                const height = viewer.clientHeight;
+                modalRenderer.setSize(width, height);
+                modalCamera.aspect = width / height;
+                modalCamera.updateProjectionMatrix();
+            }
+        });
+
+        // Cerrar menú móvil al hacer click en un enlace
+        document.querySelectorAll('#mobileMenu a').forEach(link => {
+            link.addEventListener('click', function() {
+                document.getElementById('mobileMenu').classList.add('hidden');
+            });
+        });
+
+        // Inicializar cuando se carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            // Esperar un poco para que los canvas estén completamente renderizados
+            setTimeout(initPreviews, 500);
+        });
+    </script>
+</body>
+</html>
