@@ -42,6 +42,7 @@
     <div class="flex bg-gray-900 shadow-lg">
         <a href="{{ url_for('chatprueba') }}" class="tab-inactive px-6 py-4 font-semibold flex-1 text-center" id="tab-chat">Chat</a>
         <a href="{{ url_for('cliente') }}" class="tab-inactive px-6 py-4 font-semibold flex-1 text-center" id="tab-cliente">Cliente</a>
+        <a href="{{ url_for('catalogo') }}" class="tab-inactive px-6 py-4 font-semibold flex-1 text-center" id="tab-catalogo">Catalogo</a>
         <a href="{{ url_for('admin') }}" class="tab-inactive px-6 py-4 font-semibold flex-1 text-center" id="tab-admin">Admin</a>
     </div>
 
@@ -59,6 +60,8 @@
             document.getElementById('tab-chat')?.classList.replace('tab-inactive', 'tab-active');
         } else if (currentPage.includes('cliente')) {
             document.getElementById('tab-cliente')?.classList.replace('tab-inactive', 'tab-active');
+        } else if (currentPage.includes('catalogo')) {
+            document.getElementById('tab-catalogo')?.classList.replace('tab-inactive', 'tab-active');
         } else if (currentPage.includes('admin')) {
             document.getElementById('tab-admin')?.classList.replace('tab-inactive', 'tab-active');
         }

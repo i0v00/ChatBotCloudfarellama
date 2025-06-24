@@ -46,21 +46,29 @@ def get_catalogo():
 @app.route("/save_catalogo_item", methods=["POST"])
 def save_catalogo_item():
     req = request.get_json()
-    clave = req.get("clave")  # Ej. "papas_fritas"
-    tipo = req.get("tipo")    # "producto" o "servicio"
+    clave = req.get("clave")
+    tipo = req.get("tipo")
     nombre = req.get("nombre")
     precio = req.get("precio")
     descripcion = req.get("descripcion")
+    old_clave = req.get("old_clave")  # clave anterior para editar
 
-    prompt = f"{tipo.capitalize()} {nombre} con precio {precio} Bs"
+    if not all([clave, tipo, nombre, precio]):
+        return jsonify({"status": "error", "message": "Faltan campos obligatorios"}), 400
+
+    prompt = (f"{tipo.capitalize()} {nombre} con precio {precio} Bs y lo desc")
 
     data = cargar_config()
     catalogo = data["negocio"]["configuracion"].get("catalogo", {})
+
+    if old_clave and old_clave != clave and old_clave in catalogo:
+        del catalogo[old_clave]
+
     catalogo[clave] = {
         "tipo": tipo,
         "nombre": nombre,
         "precio": precio,
-        "descripcion": descripcion,
+        "descripcion": descripcion or "",
         "prompt": prompt
     }
 
@@ -72,6 +80,8 @@ def save_catalogo_item():
 def delete_catalogo_item():
     req = request.get_json()
     clave = req.get("clave")
+    if not clave:
+        return jsonify({"status": "error", "message": "No se proporcionó clave"}), 400
 
     data = cargar_config()
     catalogo = data["negocio"]["configuracion"].get("catalogo", {})
@@ -79,15 +89,22 @@ def delete_catalogo_item():
         del catalogo[clave]
         data["negocio"]["configuracion"]["catalogo"] = catalogo
         guardar_config(data)
-    return jsonify({"status": "ok"})
+        return jsonify({"status": "ok"})
+    else:
+        return jsonify({"status": "error", "message": "Clave no encontrada"}), 404
 
+@app.route("/catalogo")
+def catalogo():
+    return render_template("catalogo.html")
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("admin.html")
 @app.route("/index.html")
 def landingpage():
     return render_template("index.html")
-
+@app.route("/previsualizacion.html")
+def previsualizacion():
+    return render_template("previsualizacion.html")
 @app.route('/modelos')
 def modelos():
     return render_template('modelos.html')
@@ -197,10 +214,22 @@ def send():
     actitudes = config.get("actitudes", {})
     actitud = actitudes.get(actitud_clave, "")
 
+    # Obtener todos los prompts del catálogo
+    catalogo = config.get("catalogo", {})
+    prompts_catalogo = "\n".join(item.get("prompt", "") for item in catalogo.values())
+
+    # Crear el mensaje del sistema
     mensajes = [
-        {"role": "system", "content": f"{general}\n\n{negocio}\n\n{actitud}\n\n{reglas}"},
-        {"role": "user", "content": mensaje_usuario}
+        {
+            "role": "system",
+            "content": f"{general}\n\n{negocio}\n\n{actitud}\n\n{reglas}\n\n{prompts_catalogo}"
+        },
+        {
+            "role": "user",
+            "content": mensaje_usuario
+        }
     ]
+
 
     try:
         url = f"https://api.cloudflare.com/client/v4/accounts/{ACCOUNT_ID}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
@@ -213,11 +242,14 @@ def send():
 
         if response.status_code == 200:
             respuesta = response_data['result']['response']
-            return jsonify({"response": respuesta})
+            respuesta_html = respuesta.replace("\n", "<br>")  # Esto convierte los saltos de línea en HTML visibles
+            return jsonify({"response": respuesta_html})
+
         else:
             return jsonify({"response": f"[Error]: {response_data.get('error', 'Unknown error')}"}), 400
     except Exception as e:
         return jsonify({"response": f"[Error]: {str(e)}"}), 500
+
 
 if __name__ == "__main__":
     app.run(debug=True)

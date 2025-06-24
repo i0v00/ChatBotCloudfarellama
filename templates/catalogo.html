@@ -30,9 +30,13 @@
             <div class="space-y-4">
                 <input type="text" id="catalogKey" placeholder="ID único (sin espacios)"
                     class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400">
-                <input type="text" id="catalogNombre" placeholder="Nombre del producto o servicio"
+                <select id="catalogTipo"
                     class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400">
-                <input type="text" id="catalogTipo" placeholder="producto o servicio"
+                    <option value="" disabled selected>Selecciona producto o servicio</option>
+                    <option value="producto">Producto</option>
+                    <option value="servicio">Servicio</option>
+                </select>
+                <input type="text" id="catalogNombre" placeholder="Nombre del producto o servicio"
                     class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400">
                 <input type="number" step="0.01" id="catalogPrecio" placeholder="Precio"
                     class="w-full bg-gray-700 border border-gray-600 rounded-lg px-4 py-2 text-white placeholder-gray-400">
@@ -63,10 +67,10 @@
             document.getElementById("catalogModal").classList.add("flex");
         }
 
-        function editCatalogItem(id, item) {
-            editingCatalogId = id;
-            document.getElementById("catalogModalTitle").textContent = "Editar: " + id;
-            document.getElementById("catalogKey").value = id;
+        function editCatalogItem(clave, item) {
+            editingCatalogId = clave;
+            document.getElementById("catalogModalTitle").textContent = "Editar: " + clave;
+            document.getElementById("catalogKey").value = clave;
             document.getElementById("catalogNombre").value = item.nombre;
             document.getElementById("catalogTipo").value = item.tipo;
             document.getElementById("catalogPrecio").value = item.precio;
@@ -85,8 +89,8 @@
                 const list = document.getElementById('catalogoList');
                 list.innerHTML = '';
 
-                for (let id in data) {
-                    let item = data[id];
+                for (let clave in data) {
+                    let item = data[clave];
                     let btn = document.createElement('button');
                     btn.innerHTML = `
                         <div class="flex items-center justify-between">
@@ -98,45 +102,61 @@
                         <p class="text-sm text-gray-400 mt-1">${item.descripcion.substring(0, 100)}...</p>
                     `;
                     btn.className = 'w-full bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg p-4 text-left text-white';
-                    btn.onclick = () => editCatalogItem(id, item);
+                    btn.onclick = () => editCatalogItem(clave, item);
                     list.appendChild(btn);
                 }
             });
         }
 
         function saveCatalogItem() {
-            const id = document.getElementById("catalogKey").value.trim();
+            const clave = document.getElementById("catalogKey").value.trim();
             const nombre = document.getElementById("catalogNombre").value.trim();
             const tipo = document.getElementById("catalogTipo").value.trim();
             const precio = parseFloat(document.getElementById("catalogPrecio").value.trim());
             const descripcion = document.getElementById("catalogDescripcion").value.trim();
             const prompt = `${tipo.charAt(0).toUpperCase() + tipo.slice(1)} ${nombre} con precio ${precio} Bs`;
 
-            if (!id || !nombre || !tipo || isNaN(precio) || !descripcion) {
+            if (!clave || !nombre || !tipo || isNaN(precio) || !descripcion) {
                 alert("Completa todos los campos correctamente");
                 return;
             }
 
-            fetch('/save_catalogo', {
+            fetch('/save_catalogo_item', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ id, tipo, nombre, precio, descripcion, prompt, old_id: editingCatalogId })
-            }).then(() => {
-                loadCatalogo();
-                closeCatalogModal();
+                body: JSON.stringify({
+                    clave,
+                    tipo,
+                    nombre,
+                    precio,
+                    descripcion,
+                    prompt,
+                    old_clave: editingCatalogId
+                })
+            }).then(res => {
+                if (res.ok) {
+                    loadCatalogo();
+                    closeCatalogModal();
+                } else {
+                    alert("Error al guardar el ítem.");
+                }
             });
         }
 
         function deleteCatalogItem() {
             if (!editingCatalogId) return;
             if (confirm(`¿Eliminar el ítem "${editingCatalogId}"?`)) {
-                fetch('/delete_catalogo', {
+                fetch('/delete_catalogo_item', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ id: editingCatalogId })
-                }).then(() => {
-                    loadCatalogo();
-                    closeCatalogModal();
+                    body: JSON.stringify({ clave: editingCatalogId })
+                }).then(res => {
+                    if (res.ok) {
+                        loadCatalogo();
+                        closeCatalogModal();
+                    } else {
+                        alert("Error al eliminar el ítem.");
+                    }
                 });
             }
         }
